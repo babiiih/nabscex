@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live Trading Game</title>
+
+<style>
+body{
+  background:#020617;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
+
+canvas{
+  background:#0f172a;
+  margin-top:20px;
+  border-radius:10px;
+}
+
+.btn{
+  padding:10px 20px;
+  margin:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  color:white;
+  font-weight:bold;
+}
+
+.buy{ background:#22c55e; }
+.sell{ background:#ef4444; }
+
+.info{
+  margin-top:10px;
+  color:#94a3b8;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📊 Live Trading Simulator</h1>
+<p class="info">Chart live • Candle close tiap 10 detik</p>
+
+<canvas id="chart" width="700" height="350"></canvas>
+
+<div>
+  <button class="btn buy" onclick="trade('buy')">BUY</button>
+  <button class="btn sell" onclick="trade('sell')">SELL</button>
+</div>
+
+<h3 id="result"></h3>
+<p>Score: <span id="score">0</span></p>
+
+<script>
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+
+let candles = [];
+let score = 0;
+
+let currentCandle;
+let tick = 0;
+
+let price = 100;
+
+/* CREATE CANDLE */
+function createCandle(p){
+  return {open:p, high:p, low:p, close:p};
+}
+
+currentCandle = createCandle(price);
+
+/* SCALE */
+function getMinMax(){
+  let all = [...candles, currentCandle];
+  let min = Math.min(...all.map(c=>c.low));
+  let max = Math.max(...all.map(c=>c.high));
+  return {min, max};
+}
+
+function scaleY(price, min, max){
+  let h = canvas.height;
+  return h - ((price - min) / (max - min)) * h;
+}
+
+/* DRAW */
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  let all = [...candles, currentCandle];
+  let {min, max} = getMinMax();
+
+  all.forEach((c,i)=>{
+    let x = i * 25 + 40;
+
+    let openY = scaleY(c.open, min, max);
+    let closeY = scaleY(c.close, min, max);
+    let highY = scaleY(c.high, min, max);
+    let lowY = scaleY(c.low, min, max);
+
+    let color = c.close > c.open ? "#22c55e" : "#ef4444";
+
+    // wick
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, highY);
+    ctx.lineTo(x, lowY);
+    ctx.stroke();
+
+    // body
+    ctx.fillStyle = color;
+    let height = Math.abs(closeY - openY);
+    ctx.fillRect(x-6, Math.min(openY, closeY), 12, height || 2);
+  });
+}
+
+/* LIVE MARKET */
+setInterval(()=>{
+  let move = (Math.random() - 0.5) * 8; // lebih besar biar keliatan
+  price += move;
+
+  if(price < 1) price = 1;
+
+  currentCandle.close = price;
+  currentCandle.high = Math.max(currentCandle.high, price);
+  currentCandle.low = Math.min(currentCandle.low, price);
+
+  tick++;
+
+  // CLOSE tiap 10 detik
+  if(tick >= 10){
+    candles.push(currentCandle);
+    if(candles.length > 25) candles.shift();
+
+    currentCandle = createCandle(price);
+    tick = 0;
+  }
+
+  draw();
+},1000);
+
+/* SIGNAL (pattern sederhana) */
+function getSignal(){
+  if(candles.length < 2) return "buy";
+
+  let last = candles[candles.length-1];
+  let prev = candles[candles.length-2];
+
+  if(last.close > last.open && prev.close < prev.open) return "buy";
+  if(last.close < last.open && prev.close > prev.open) return "sell";
+
+  return Math.random() > 0.5 ? "buy" : "sell";
+}
+
+/* TRADE */
+function trade(choice){
+  let correct = getSignal();
+
+  if(choice === correct){
+    score++;
+    document.getElementById("result").innerText = "✅ Good Trade!";
+  }else{
+    score--;
+    document.getElementById("result").innerText = "❌ Bad Trade!";
+  }
+
+  document.getElementById("score").innerText = score;
+}
+
+/* INIT */
+draw();
+</script>
+
+</body>
+</html>

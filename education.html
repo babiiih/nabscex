@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rialo Academy</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#020617;
+  color:white;
+}
+
+/* BACK BUTTON */
+.back-btn{
+  position:fixed;
+  top:20px;
+  left:20px;
+  background:rgba(15,23,42,0.7);
+  border:1px solid #1e293b;
+  color:#e2e8f0;
+  padding:10px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  backdrop-filter: blur(10px);
+  transition:0.2s;
+  z-index:10;
+}
+
+.back-btn:hover{
+  background:#1e293b;
+}
+
+/* LAYOUT */
+.container{
+  display:flex;
+  height:100vh;
+}
+
+/* PLAYER */
+.player{
+  flex:3;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#000;
+}
+
+iframe{
+  width:90%;
+  height:80%;
+  border:none;
+  border-radius:12px;
+}
+
+/* PLAYLIST */
+.playlist{
+  flex:1;
+  overflow-y:auto;
+  background:#0f172a;
+}
+
+.header{
+  padding:15px;
+  font-weight:bold;
+  border-bottom:1px solid #1e293b;
+}
+
+.video{
+  display:flex;
+  gap:10px;
+  padding:10px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.video:hover{
+  background:#1e293b;
+}
+
+.video img{
+  width:120px;
+  border-radius:6px;
+}
+
+.video-title{
+  font-size:13px;
+  color:#cbd5f5;
+}
+</style>
+</head>
+
+<body>
+
+<!-- BACK TO HOME -->
+<button class="back-btn" onclick="goHome()"><a href="home.html">← Kembali</a></button>
+
+<div class="container">
+
+  <!-- PLAYER -->
+  <div class="player">
+    <iframe id="player"
+      src="https://www.youtube.com/embed/lEk4cSA7cqc?rel=0"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <!-- PLAYLIST -->
+  <div class="playlist">
+    <div class="header">Full Playlist</div>
+    <div id="list"></div>
+  </div>
+
+</div>
+
+<script>
+const API_KEY = "AIzaSyB9ASV1X7--pjq2TCBzKhiduq2dOwOMKwM";
+const PLAYLIST_ID = "PLqJjKuP8g79xgdI8SvWfe7LndcqKE_yUC";
+
+const list = document.getElementById("list");
+const player = document.getElementById("player");
+
+/* BACK HOME */
+function goHome(){
+  window.location.href = "home.html"; // arahkan ke halaman utama kamu
+}
+
+/* LOAD ALL VIDEOS */
+async function loadVideos(pageToken = "") {
+  let url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${PLAYLIST_ID}&key=${API_KEY}`;
+
+  if(pageToken){
+    url += `&pageToken=${pageToken}`;
+  }
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  data.items.forEach(item => {
+    if (!item.snippet.resourceId) return;
+
+    const videoId = item.snippet.resourceId.videoId;
+    const title = item.snippet.title;
+    const thumb = item.snippet.thumbnails.medium.url;
+
+    const div = document.createElement("div");
+    div.className = "video";
+
+    div.innerHTML = `
+      <img src="${thumb}">
+      <div class="video-title">${title}</div>
+    `;
+
+    div.onclick = () => {
+      player.src = "https://www.youtube.com/embed/" + videoId + "?rel=0";
+    };
+
+    list.appendChild(div);
+  });
+
+  if (data.nextPageToken) {
+    loadVideos(data.nextPageToken);
+  }
+}
+
+/* START */
+loadVideos();
+</script>
+
+</body>
+</html>

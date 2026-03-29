@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rialo CEX Simulator</title>
+
+<style>
+*{box-sizing:border-box;font-family:Inter,sans-serif}
+body{margin:0;background:#17170b;color:#e5e7eb}
+
+.app{
+  display:grid;
+  grid-template-columns:260px 1fr 320px;
+  grid-template-rows:60px 1fr 220px;
+  height:100vh;
+  gap:1px;
+  background:#1f2937;
+}
+
+.header{
+  grid-column:1/-1;
+  background:#111827;
+  display:flex;
+  align-items:center;
+  padding:0 20px;
+  font-weight:bold;
+}
+
+.panel{
+  background:#111827;
+  padding:12px;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+}
+
+.market-item{padding:8px;border-radius:6px;cursor:pointer;font-size:13px}
+.market-item:hover{background:#1f2937}
+.selected{background:#1f2937;border-left:3px solid #3b82f6}
+
+.green{color:#22c55e}
+.red{color:#ef4444}
+
+.orderbook .row{display:grid;grid-template-columns:1fr 1fr;font-size:12px}
+
+.chart-container{flex:1;min-height:220px}
+canvas{width:100%;height:100%;display:block}
+
+.trade-box input{
+  width:100%;padding:10px;margin:10px 0;
+  background:#1f2937;border:none;color:white;border-radius:6px;
+}
+
+.btn{
+  width:100%;padding:10px;border:none;margin-top:6px;
+  border-radius:6px;font-weight:bold;cursor:pointer;
+}
+
+.buy{background:#16a34a}
+.sell{background:#dc2626}
+.faucet{background:#2563eb}
+
+.bottom{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+}
+
+.table .row{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="header">NAB'S Exchange</div>
+
+<div class="panel" id="assets"></div>
+
+<div class="panel">
+  <h3 id="selected">Market</h3>
+  <div class="chart-container">
+    <canvas id="chart"></canvas>
+  </div>
+  <div id="orderbook" class="orderbook"></div>
+</div>
+
+<div class="panel trade-box">
+  <h3>Trade</h3>
+  <div id="balance"></div>
+
+  <button class="btn faucet" onclick="faucet()">Claim Faucet (+100000 USDC)</button>
+  <div id="faucetInfo" style="font-size:12px;color:#9ca3af;"></div>
+
+  <input id="amount" placeholder="Amount">
+
+  <button class="btn buy" onclick="buy()">BUY</button>
+  <button class="btn sell" onclick="sell()">SELL</button>
+
+  <div id="tradeHint"></div>
+</div>
+
+<div class="bottom">
+
+<div class="panel">
+  <h3>Recent Trades</h3>
+  <div id="trades" class="table"></div>
+</div>
+
+<div class="panel">
+  <h3>Portfolio</h3>
+  <div id="portfolio" class="table"></div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+// ===== ELEMENTS =====
+const selectedEl = document.getElementById("selected")
+const amountInput = document.getElementById("amount")
+const balanceEl = document.getElementById("balance")
+const faucetInfo = document.getElementById("faucetInfo")
+
+// ===== STATE =====
+let usdc = Number(localStorage.getItem("usdc")) || 1000000
+let lastFaucet = Number(localStorage.getItem("lastFaucet")) || 0
+
+let selected=null
+let trades=[]
+const FEE=0.001
+const FAUCET_AMOUNT=100000
+const FAUCET_COOLDOWN=10000
+
+const portfolio={
+BTC:{qty:0,avg:0},
+ETH:{qty:0,avg:0},
+SOL:{qty:0,avg:0},
+RET:{qty:0,avg:0},
+INV:{qty:0,avg:0},
+TBL:{qty:0,avg:0},
+RIALO:{qty:0,avg:0}
+}
+
+const assets=[
+{name:"Bitcoin",symbol:"BTC",price:65000},
+{name:"Ethereum",symbol:"ETH",price:3200},
+{name:"Solana",symbol:"SOL",price:140},
+{name:"Real Estate",symbol:"RET",price:100},
+{name:"Invoices",symbol:"INV",price:95},
+{name:"T-Bills",symbol:"TBL",price:102},
+{name:"Rialo",symbol:"RIALO",price:1.2}
+]
+
+let orderbook={bids:[],asks:[]}
+let candles=[]
+
+// ===== CHART =====
+function resizeCanvas(canvas){
+  const dpr=window.devicePixelRatio||1
+  const rect=canvas.getBoundingClientRect()
+  canvas.width=rect.width*dpr
+  canvas.height=rect.height*dpr
+  const ctx=canvas.getContext("2d")
+  ctx.setTransform(dpr,0,0,dpr,0,0)
+}
+
+function genCandle(prev){
+  let open=prev
+  let close=open*(1+(Math.random()-0.5)/10)
+  let high=Math.max(open,close)*(1+Math.random()/20)
+  let low=Math.min(open,close)*(1-Math.random()/20)
+  return {open,high,low,close}
+}
+
+function initChart(price){
+  candles=[]
+  let p=price
+  for(let i=0;i<40;i++){
+    let c=genCandle(p)
+    candles.push(c)
+    p=c.close
+  }
+}
+
+function updateChart(){
+  let last=candles[candles.length-1]
+  let c=genCandle(last.close)
+  candles.push(c)
+  if(candles.length>40)candles.shift()
+}
+
+function drawChart(){
+  const canvas=document.getElementById("chart")
+  const ctx=canvas.getContext("2d")
+  resizeCanvas(canvas)
+
+  const w=canvas.clientWidth/candles.length
+  const h=canvas.clientHeight
+
+  ctx.clearRect(0,0,canvas.clientWidth,h)
+
+  const prices=candles.flatMap(c=>[c.high,c.low])
+  const max=Math.max(...prices)
+  const min=Math.min(...prices)
+
+  candles.forEach((c,i)=>{
+    const x=i*w+w/2
+    const scale=p=>h-((p-min)/(max-min))*h
+
+    const openY=scale(c.open)
+    const closeY=scale(c.close)
+    const highY=scale(c.high)
+    const lowY=scale(c.low)
+
+    ctx.beginPath()
+    ctx.moveTo(x,highY)
+    ctx.lineTo(x,lowY)
+    ctx.strokeStyle="#9ca3af"
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.lineWidth=Math.max(2,w*0.6)
+    ctx.strokeStyle=c.close>=c.open?"#22c55e":"#ef4444"
+    ctx.moveTo(x,openY)
+    ctx.lineTo(x,closeY)
+    ctx.stroke()
+  })
+}
+
+// ===== FAUCET =====
+function faucet(){
+  let now=Date.now()
+  if(now-lastFaucet<FAUCET_COOLDOWN){
+    let s=Math.ceil((FAUCET_COOLDOWN-(now-lastFaucet))/100000)
+    faucetInfo.innerText="Wait "+s+"s"
+    return
+  }
+
+  usdc+=FAUCET_AMOUNT
+  lastFaucet=now
+
+  localStorage.setItem("usdc",usdc)
+  localStorage.setItem("lastFaucet",lastFaucet)
+
+  faucetInfo.innerText="Claimed +"+FAUCET_AMOUNT+" USDC"
+  renderAll()
+}
+
+// ===== ORDERBOOK =====
+function genOB(mid){
+let bids=[],asks=[]
+for(let i=1;i<=10;i++){
+let s=i*0.001
+bids.push({p:(mid*(1-s)).toFixed(2),q:(Math.random()*5).toFixed(3)})
+asks.push({p:(mid*(1+s)).toFixed(2),q:(Math.random()*5).toFixed(3)})
+}
+orderbook={bids,asks}
+}
+
+function renderOB(){
+let el=document.getElementById("orderbook")
+el.innerHTML=""
+for(let i=0;i<10;i++){
+let b=orderbook.bids[i]
+let a=orderbook.asks[i]
+let row=document.createElement("div")
+row.className="row"
+row.innerHTML=`
+<span class="green">${b.p} (${b.q})</span>
+<span class="red">${a.p} (${a.q})</span>
+`
+el.appendChild(row)
+}
+}
+
+// ===== MARKET =====
+function renderAssets(){
+let el=document.getElementById("assets")
+el.innerHTML=""
+assets.forEach(a=>{
+let div=document.createElement("div")
+div.className="market-item"+(selected&&selected.symbol===a.symbol?" selected":"")
+div.innerHTML=`${a.symbol} - $${a.price}`
+div.onclick=()=>{
+selected=a
+selectedEl.innerText=`${a.symbol} / USDC - $${a.price}`
+amountInput.value=1
+initChart(a.price)
+genOB(a.price)
+renderAll()
+}
+el.appendChild(div)
+})
+}
+
+// ===== TRADING =====
+function buy(){
+let amt=parseFloat(amountInput.value)
+
+if(!selected){alert("select asset dulu");return}
+if(isNaN(amt)||amt<=0){alert("invalid amount");return}
+
+let cost=amt*selected.price
+let fee=cost*FEE
+
+if(cost+fee>usdc){alert("no balance");return}
+
+usdc-=cost+fee
+localStorage.setItem("usdc",usdc)
+
+let p=portfolio[selected.symbol]
+let newQty=p.qty+amt
+p.avg=((p.qty*p.avg)+cost)/newQty
+p.qty=newQty
+
+addTrade("BUY",amt,selected.price,fee)
+renderAll()
+}
+
+function sell(){
+let amt=parseFloat(amountInput.value)
+
+if(!selected){alert("select asset dulu");return}
+if(isNaN(amt)||amt<=0){alert("invalid amount");return}
+
+let p=portfolio[selected.symbol]
+if(amt>p.qty){alert("no asset");return}
+
+let val=amt*selected.price
+let fee=val*FEE
+
+usdc+=val-fee
+localStorage.setItem("usdc",usdc)
+
+p.qty-=amt
+if(p.qty===0)p.avg=0
+
+addTrade("SELL",amt,selected.price,fee)
+renderAll()
+}
+
+// ===== UI =====
+function addTrade(t,a,p,f){
+trades.unshift({t,s:selected.symbol,a:a.toFixed(3),p:p.toFixed(2),f:f.toFixed(2),time:new Date().toLocaleTimeString()})
+}
+
+function renderTrades(){
+let el=document.getElementById("trades")
+el.innerHTML=""
+trades.slice(0,10).forEach(t=>{
+let row=document.createElement("div")
+row.className="row"
+row.innerHTML=`
+<span class="${t.t=='BUY'?'green':'red'}">${t.t}</span>
+<span>${t.s}</span>
+<span>${t.a}</span>
+<span>$${t.p}</span>
+<span>$${t.f}</span>
+<span>${t.time}</span>
+`
+el.appendChild(row)
+})
+}
+
+function renderPortfolio(){
+let el=document.getElementById("portfolio")
+el.innerHTML=""
+Object.keys(portfolio).forEach(k=>{
+let p=portfolio[k]
+let price=assets.find(a=>a.symbol==k).price
+let val=p.qty*price
+let pnl=val-(p.qty*p.avg)
+
+let row=document.createElement("div")
+row.className="row"
+row.innerHTML=`
+<span>${k}</span>
+<span>${p.qty.toFixed(3)}</span>
+<span>$${p.avg.toFixed(2)}</span>
+<span>$${val.toFixed(2)}</span>
+<span class="${pnl>=0?'green':'red'}">$${pnl.toFixed(2)}</span>
+<span></span>
+`
+el.appendChild(row)
+})
+}
+
+function renderAll(){
+renderAssets()
+renderOB()
+renderTrades()
+renderPortfolio()
+drawChart()
+balanceEl.innerText="USDC: "+usdc.toFixed(2)
+tradeHint.innerText=selected?`Holding: ${portfolio[selected.symbol].qty}`:""
+}
+
+// ===== LOOP =====
+setInterval(()=>{
+assets.forEach(a=>{
+a.price=(a.price*(1+(Math.random()-0.5)/20)).toFixed(2)
+})
+if(selected){
+genOB(selected.price)
+updateChart()
+}
+renderAll()
+},3000)
+
+window.addEventListener("resize", drawChart)
+
+// INIT
+selected=assets[0]
+selectedEl.innerText=`${selected.symbol} / USDC - $${selected.price}`
+initChart(selected.price)
+genOB(selected.price)
+renderAll()
+
+</script>
+
+</body>
+</html>

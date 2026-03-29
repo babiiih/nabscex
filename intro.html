@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web3 Animated Background</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+  background: #020617;
+  color: white;
+}
+
+/* CANVAS BACKGROUND */
+#bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+/* CONTENT */
+.hero {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.hero p {
+  opacity: 0.7;
+}
+
+.btn {
+  margin-top: 20px;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #22c55e, #6366f1);
+  color: white;
+  cursor: pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="hero">
+  <h1>Web3 NAB's</h1>
+  <p>FOR RIALO BUILDER</p>
+  <button class="btn" ><a href="home.html">Explore</a></button>
+</div>
+
+<script>
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+
+/* CREATE PARTICLES */
+for (let i = 0; i < 100; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.5,
+    vy: (Math.random() - 0.5) * 0.5
+  });
+}
+
+/* DRAW GRID */
+function drawGrid() {
+  const spacing = 50;
+  ctx.strokeStyle = "rgba(0,255,255,0.05)";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x < canvas.width; x += spacing) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y < canvas.height; y += spacing) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+}
+
+/* DRAW PARTICLES */
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = "#22c55e";
+    ctx.fill();
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+  });
+}
+
+/* CONNECT LINES */
+function connectParticles() {
+  for (let a = 0; a < particles.length; a++) {
+    for (let b = a; b < particles.length; b++) {
+      let dx = particles[a].x - particles[b].x;
+      let dy = particles[a].y - particles[b].y;
+      let dist = dx * dx + dy * dy;
+
+      if (dist < 10000) {
+        ctx.strokeStyle = "rgba(34,197,94,0.1)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(particles[a].x, particles[a].y);
+        ctx.lineTo(particles[b].x, particles[b].y);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+/* ANIMATION LOOP */
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawGrid();
+  drawParticles();
+  connectParticles();
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+
+/* RESPONSIVE */
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>

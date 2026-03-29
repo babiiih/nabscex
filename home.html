@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rialo - Next Gen Asset Exchange</title>
+
+<style>
+:root{
+  --bg:#020617;
+  --panel:#0f172a;
+  --soft:#111827;
+  --border:#1e293b;
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+
+  --blue:#3b82f6;
+  --purple:#8b5cf6;
+  --green:#22c55e;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter,system-ui,sans-serif;
+}
+
+body{
+  background:#020617;
+  color:var(--text);
+}
+
+/* BACKGROUND CANVAS */
+#bg{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  z-index:-1;
+}
+
+/* NAV */
+.nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 40px;
+}
+
+.logo{
+  font-weight:700;
+  font-size:18px;
+  background:linear-gradient(90deg,#3b82f6,#8b5cf6);
+  -webkit-background-clip:text;
+  color:transparent;
+}
+
+.nav a{
+  color:var(--muted);
+  text-decoration:none;
+  margin-left:20px;
+  font-size:14px;
+}
+
+.btn{
+  background:linear-gradient(90deg,#3b82f6,#8b5cf6);
+  padding:10px 16px;
+  border-radius:8px;
+  font-size:14px;
+  color:white;
+}
+
+/* HERO */
+.hero{
+  text-align:center;
+  padding:100px 20px 80px;
+}
+
+.hero h1{
+  font-size:48px;
+  font-weight:700;
+  line-height:1.2;
+}
+
+.hero span{
+  background:linear-gradient(90deg,#3b82f6,#8b5cf6);
+  -webkit-background-clip:text;
+  color:transparent;
+}
+
+.hero p{
+  color:var(--muted);
+  margin-top:20px;
+  font-size:16px;
+}
+
+.hero .cta{
+  margin-top:30px;
+}
+
+.hero .cta a{
+  margin:0 10px;
+}
+
+/* CARD SECTION */
+.section{
+  padding:80px 40px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:rgba(15,23,42,0.7);
+  padding:20px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  transition:0.3s;
+  backdrop-filter: blur(10px);
+}
+
+.card:hover{
+  transform:translateY(-5px);
+  border-color:#3b82f6;
+}
+
+.card h3{
+  margin-bottom:10px;
+}
+
+.card p{
+  color:var(--muted);
+  font-size:14px;
+}
+
+/* STATS */
+.stats{
+  display:flex;
+  justify-content:space-around;
+  text-align:center;
+  padding:60px 20px;
+}
+
+.stat h2{
+  font-size:28px;
+}
+
+.stat p{
+  color:var(--muted);
+}
+
+/* FOOTER */
+.footer{
+  text-align:center;
+  padding:40px;
+  color:var(--muted);
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- BACKGROUND -->
+<canvas id="bg"></canvas>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="logo">N</div>
+  <div>
+    <a href="education.html">Education</a>
+    <a href="https://www.rialo.io/docs" target="blank">Docs</a>
+    <a href="https://discord.gg/RialoProtocol" target="blank">Community</a>
+    <a href="#" class="btn">Launch App</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Trade Real Assets<br><span>Without Friction</span></h1>
+  <p>
+    A new generation exchange where real-world assets, crypto,
+    and synthetic markets converge into one seamless system.
+  </p>
+
+  <div class="cta">
+    <a class="btn" href="cex.html">Start Trading</a>
+    <a href="#" style="color:#94a3b8;">Explore Docs →</a>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="section">
+  <div class="grid">
+
+    <div class="card">
+      <h3>Real Asset Exposure</h3>
+      <p>Access tokenized real-world assets with on-chain liquidity.</p>
+    </div>
+
+    <div class="card">
+      <h3>Unified Liquidity</h3>
+      <p>All markets connected into a single execution layer.</p>
+    </div>
+
+    <div class="card">
+      <h3>Fast Execution</h3>
+      <p>Low latency trading with predictable settlement.</p>
+    </div>
+
+    <div class="card">
+      <h3>Composable Finance</h3>
+      <p>Integrate strategies across DeFi, TradFi, and synthetic assets.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <h2>$120M+</h2>
+    <p>Volume Simulated</p>
+  </div>
+
+  <div class="stat">
+    <h2>50K+</h2>
+    <p>Active Users</p>
+  </div>
+
+  <div class="stat">
+    <h2>30+</h2>
+    <p>Markets</p>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="section" style="text-align:center;">
+  <h2 style="font-size:28px;">Start Building Your Edge</h2>
+  <p style="color:#94a3b8;margin-top:10px;">
+    The future of trading is not just faster — it's smarter.
+  </p>
+
+  <div style="margin-top:20px;">
+    <a class="btn" href="cex.html">Launch App</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  © 2026 Nabs Built for the next financial layer.
+</div>
+
+<!-- SCRIPT BACKGROUND -->
+<script>
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+
+/* PARTICLES */
+for (let i = 0; i < 90; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3
+  });
+}
+
+/* GRID */
+function drawGrid(){
+  const spacing = 70;
+  ctx.strokeStyle = "rgba(59,130,246,0.05)";
+
+  for(let x=0;x<canvas.width;x+=spacing){
+    ctx.beginPath();
+    ctx.moveTo(x,0);
+    ctx.lineTo(x,canvas.height);
+    ctx.stroke();
+  }
+
+  for(let y=0;y<canvas.height;y+=spacing){
+    ctx.beginPath();
+    ctx.moveTo(0,y);
+    ctx.lineTo(canvas.width,y);
+    ctx.stroke();
+  }
+}
+
+/* PARTICLES */
+function drawParticles(){
+  particles.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,1.5,0,Math.PI*2);
+    ctx.fillStyle="#3b82f6";
+    ctx.fill();
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    if(p.x<0||p.x>canvas.width) p.vx *= -1;
+    if(p.y<0||p.y>canvas.height) p.vy *= -1;
+  });
+}
+
+/* CONNECTION */
+function connect(){
+  for(let a=0;a<particles.length;a++){
+    for(let b=a;b<particles.length;b++){
+      let dx = particles[a].x - particles[b].x;
+      let dy = particles[a].y - particles[b].y;
+      let dist = dx*dx + dy*dy;
+
+      if(dist < 7000){
+        ctx.strokeStyle = "rgba(139,92,246,0.08)";
+        ctx.beginPath();
+        ctx.moveTo(particles[a].x,particles[a].y);
+        ctx.lineTo(particles[b].x,particles[b].y);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+/* ANIMATE */
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  drawGrid();
+  drawParticles();
+  connect();
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+
+/* RESPONSIVE */
+window.addEventListener("resize",()=>{
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>
