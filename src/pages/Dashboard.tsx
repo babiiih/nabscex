@@ -1,60 +1,77 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { BarChart3, TrendingUp, Activity, DollarSign, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { BarChart3, TrendingUp, Activity, DollarSign, ArrowUpRight, ExternalLink, Loader2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { useTokenPrices, formatUSD } from "../hooks/useTokenPrice";
+import { getNetworkStats, getRecentTransactions, getTxExplorerUrl, type BlockscoutTx, type NetworkStats } from "../services/blockscout";
 
 const CHART_DATA = Array.from({ length: 30 }, (_, i) => ({
   date: `May ${i + 1}`,
   tvl: 12000000 + Math.random() * 3000000 + i * 100000,
   volume: 800000 + Math.random() * 500000,
-  fees: 2400 + Math.random() * 1500,
 }));
-
-const TOP_TOKENS_DATA = [
-  { symbol: "USDC", name: "USD Coin", price: 1.0, change24h: 0.01, volume: 4500000, tvl: 8200000 },
-  { symbol: "EURC", name: "Euro Coin", price: 1.08, change24h: -0.12, volume: 1200000, tvl: 3100000 },
-  { symbol: "WETH", name: "Wrapped Ether", price: 3250.42, change24h: 2.35, volume: 2800000, tvl: 5600000 },
-  { symbol: "WBTC", name: "Wrapped Bitcoin", price: 104520.18, change24h: 1.87, volume: 3500000, tvl: 9800000 },
-];
-
-const RECENT_TXS = [
-  { type: "Swap", from: "USDC", to: "EURC", amount: "1,000", time: "2m ago", hash: "0x1a2b...3c4d" },
-  { type: "Bridge", from: "USDC", to: "USDC", amount: "5,000", time: "5m ago", hash: "0x2b3c...4d5e" },
-  { type: "Add Liquidity", from: "USDC", to: "WETH", amount: "2,500", time: "8m ago", hash: "0x3c4d...5e6f" },
-  { type: "Swap", from: "WETH", to: "USDC", amount: "0.5", time: "12m ago", hash: "0x4d5e...6f7g" },
-  { type: "Stake", from: "USDC", to: "", amount: "10,000", time: "15m ago", hash: "0x5e6f...7g8h" },
-];
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const [timeframe, setTimeframe] = useState<"7d" | "30d" | "90d">("30d");
+  const [netStats, setNetStats] = useState<NetworkStats | null>(null);
+  const [recentTxs, setRecentTxs] = useState<BlockscoutTx[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const coingeckoIds = useMemo(() => ["usd-coin", "euro-coin", "ethereum", "bitcoin"], []);
-  useTokenPrices(coingeckoIds);
+  const { prices } = useTokenPrices(coingeckoIds);
 
   useEffect(() => { document.title = "Dashboard | NabCex"; }, []);
 
-  const totalTVL = 26700000;
-  const volume24h = 8500000;
-  const totalFees = 25500;
-  const totalTxs = 145230;
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [stats, txs] = await Promise.all([getNetworkStats(), getRecentTransactions(10)]);
+        setNetStats(stats);
+        setRecentTxs(txs);
+      } catch (e) {
+        console.error("Failed to fetch dashboard data:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const stats = [
-    { label: t("common.totalValueLocked"), value: formatUSD(totalTVL), change: "+5.2%", up: true, icon: DollarSign },
-    { label: t("common.volume24h"), value: formatUSD(volume24h), change: "+12.8%", up: true, icon: Activity },
-    { label: "Total Fees", value: formatUSD(totalFees), change: "+3.4%", up: true, icon: TrendingUp },
-    { label: t("common.transactions"), value: totalTxs.toLocaleString(), change: "+8.1%", up: true, icon: BarChart3 },
-  ];
+  const topTokens = useMemo(() => [
+    { symbol: "USDC", name: "USD Coin", coingeckoId: "usd-coin" },
+    { symbol: "EURC", name: "Euro Coin", coingeckoId: "euro-coin" },
+    { symbol: "WETH", name: "Wrapped Ether", coingeckoId: "ethereum" },
+    { symbol: "WBTC", name: "Wrapped Bitcoin", coingeckoId: "bitcoin" },
+  ], []);
+
+  const stats = useMemo(() => [
+    { label: t("common.totalValueLocked"), value: netStats ? `${Number(netStats.total_addresses).toLocaleString()} addr` : "...", change: `${netStats?.network_utilization_percentage?.toFixed(1) ?? 0}% util`, up: true, icon: DollarSign },
+    { label: t("common.volume24h"), value: netStats ? `${Number(netStats.transactions_today).toLocaleString()} txs` : "...", change: "today", up: true, icon: Activity },
+    { label: "Gas Price", value: netStats ? `${netStats.gas_prices.average.toFixed(1)} Gwei` : "...", change: `${netStats?.gas_prices.fast.toFixed(1) ?? 0} fast`, up: true, icon: TrendingUp },
+    { label: t("common.transactions"), value: netStats ? Number(netStats.total_transactions).toLocaleString() : "...", change: `${Number(netStats?.total_blocks ?? 0).toLocaleString()} blocks`, up: true, icon: BarChart3 },
+  ], [t, netStats]);
+
+  const timeSince = (ts: string) => {
+    const diff = Date.now() - new Date(ts).getTime();
+    if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    return `${Math.floor(diff / 3600000)}h ago`;
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("dashboard.title")}</h1>
-        <p className="text-sm text-gray-500 mt-1">{t("dashboard.subtitle")}</p>
+        <p className="text-sm text-gray-500 mt-1">
+          Live data from{" "}
+          <a href="https://testnet.arcscan.app" target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:text-brand-600">testnet.arcscan.app</a>
+        </p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat, i) => (
           <div key={i} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
@@ -62,20 +79,17 @@ export default function Dashboard() {
               <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center">
                 <stat.icon size={20} className="text-brand-500" />
               </div>
-              <span className={`flex items-center gap-0.5 text-xs font-medium ${stat.up ? "text-green-500" : "text-red-500"}`}>
-                {stat.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                {stat.change}
+              <span className="flex items-center gap-0.5 text-xs font-medium text-green-500">
+                <ArrowUpRight size={12} /> {stat.change}
               </span>
             </div>
             <p className="text-xs text-gray-500 mb-1">{stat.label}</p>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{loading ? <Loader2 size={18} className="animate-spin" /> : stat.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* TVL Chart */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white">{t("common.totalValueLocked")}</h3>
@@ -103,7 +117,6 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Volume Chart */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t("common.volume24h")}</h3>
           <ResponsiveContainer width="100%" height={200}>
@@ -117,60 +130,62 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Top Tokens & Recent TXs */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Tokens */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
           <div className="p-5 border-b border-gray-200 dark:border-gray-800">
             <h3 className="font-semibold text-gray-900 dark:text-white">{t("dashboard.topTokens")}</h3>
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-800">
-            {TOP_TOKENS_DATA.map((token, idx) => (
-              <div key={idx} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400 w-4">{idx + 1}</span>
-                  <div className="w-8 h-8 rounded-full bg-brand-500/10 flex items-center justify-center text-xs font-bold text-brand-600">{token.symbol[0]}</div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white text-sm">{token.symbol}</p>
-                    <p className="text-[10px] text-gray-500">{token.name}</p>
+            {topTokens.map((token, idx) => {
+              const p = prices[token.coingeckoId];
+              return (
+                <div key={idx} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400 w-4">{idx + 1}</span>
+                    <div className="w-8 h-8 rounded-full bg-brand-500/10 flex items-center justify-center text-xs font-bold text-brand-600">{token.symbol[0]}</div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white text-sm">{token.symbol}</p>
+                      <p className="text-[10px] text-gray-500">{token.name}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900 dark:text-white text-sm">{p ? formatUSD(p.usd) : "..."}</p>
+                    <p className={`text-[10px] ${(p?.usd_24h_change ?? 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
+                      {p ? `${(p.usd_24h_change ?? 0) >= 0 ? "+" : ""}${(p.usd_24h_change ?? 0).toFixed(2)}%` : ""}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-gray-900 dark:text-white text-sm">{formatUSD(token.price)}</p>
-                  <p className={`text-[10px] ${token.change24h >= 0 ? "text-green-500" : "text-red-500"}`}>
-                    {token.change24h >= 0 ? "+" : ""}{token.change24h}%
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Recent Transactions */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-          <div className="p-5 border-b border-gray-200 dark:border-gray-800">
+          <div className="p-5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
             <h3 className="font-semibold text-gray-900 dark:text-white">{t("dashboard.recentTx")}</h3>
+            <span className="text-[10px] text-brand-500 bg-brand-500/10 px-2 py-0.5 rounded-full">LIVE</span>
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-800">
-            {RECENT_TXS.map((tx, idx) => (
+            {loading && recentTxs.length === 0 ? (
+              <div className="p-8 text-center"><Loader2 size={24} className="animate-spin mx-auto text-brand-500" /></div>
+            ) : recentTxs.slice(0, 6).map((tx, idx) => (
               <div key={idx} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
-                    tx.type === "Swap" ? "bg-blue-500/10 text-blue-500" :
-                    tx.type === "Bridge" ? "bg-purple-500/10 text-purple-500" :
-                    tx.type === "Stake" ? "bg-green-500/10 text-green-500" :
-                    "bg-brand-500/10 text-brand-500"
-                  }`}>
-                    {tx.type[0]}
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold bg-brand-500/10 text-brand-500">
+                    {tx.transaction_types?.[0]?.[0]?.toUpperCase() ?? "T"}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white text-sm">{tx.type}</p>
-                    <p className="text-[10px] text-gray-500">{tx.from}{tx.to ? ` → ${tx.to}` : ""}</p>
+                    <p className="font-medium text-gray-900 dark:text-white text-sm">{tx.transaction_types?.[0] ?? "Transaction"}</p>
+                    <p className="text-[10px] text-gray-500">{tx.from.hash.slice(0, 8)}...{tx.to?.hash?.slice(-4) ?? ""}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-gray-900 dark:text-white text-sm">{tx.amount}</p>
-                  <p className="text-[10px] text-gray-500">{tx.time}</p>
+                <div className="text-right flex items-center gap-2">
+                  <div>
+                    <p className="text-[10px] text-gray-500">{timeSince(tx.timestamp)}</p>
+                  </div>
+                  <a href={getTxExplorerUrl(tx.hash)} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:text-brand-600">
+                    <ExternalLink size={12} />
+                  </a>
                 </div>
               </div>
             ))}

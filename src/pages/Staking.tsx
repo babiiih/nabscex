@@ -1,22 +1,63 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Landmark, Lock, Gift, TrendingUp, Clock } from "lucide-react";
+import { Landmark, Lock, Gift, TrendingUp, Clock, Loader2, CheckCircle, ExternalLink } from "lucide-react";
 import { useWallet } from "../contexts/WalletContext";
+import { getTokenBalance, USDC_ADDRESS, EURC_ADDRESS } from "../services/contracts";
+import { getTxExplorerUrl } from "../services/blockscout";
+import { ethers } from "ethers";
 
 const STAKING_POOLS = [
-  { token: "USDC", apy: 8.5, tvl: 5200000, lockPeriod: "30 days", minStake: 10, logo: "U" },
-  { token: "EURC", apy: 7.2, tvl: 2100000, lockPeriod: "30 days", minStake: 10, logo: "E" },
-  { token: "USDC", apy: 12.0, tvl: 3800000, lockPeriod: "90 days", minStake: 50, logo: "U" },
-  { token: "USDC", apy: 18.5, tvl: 1500000, lockPeriod: "180 days", minStake: 100, logo: "U" },
+  { token: "USDC", address: USDC_ADDRESS, apy: 8.5, tvl: 5200000, lockPeriod: "30 days", minStake: 10, logo: "U" },
+  { token: "EURC", address: EURC_ADDRESS, apy: 7.2, tvl: 2100000, lockPeriod: "30 days", minStake: 10, logo: "E" },
+  { token: "USDC", address: USDC_ADDRESS, apy: 12.0, tvl: 3800000, lockPeriod: "90 days", minStake: 50, logo: "U" },
+  { token: "USDC", address: USDC_ADDRESS, apy: 18.5, tvl: 1500000, lockPeriod: "180 days", minStake: 100, logo: "U" },
 ];
 
 export default function Staking() {
   const { t } = useTranslation();
-  const { isConnected, connect } = useWallet();
+  const { isConnected, connect, address } = useWallet();
   const [selectedPool, setSelectedPool] = useState<number | null>(null);
   const [amount, setAmount] = useState("");
+  const [staking, setStaking] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
 
   useEffect(() => { document.title = "Staking | NabCex"; }, []);
+
+  useEffect(() => {
+    if (address && selectedPool !== null) {
+      getTokenBalance(STAKING_POOLS[selectedPool].address, address).then(setBalance).catch(() => setBalance(null));
+    }
+  }, [address, selectedPool, txHash]);
+
+  const handleStake = async (poolIdx: number) => {
+    if (!amount || !isConnected || !window.ethereum) return;
+    const pool = STAKING_POOLS[poolIdx];
+    setStaking(true);
+    setError(null);
+    setTxHash(null);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const tokenContract = new ethers.Contract(pool.address, [
+        "function transfer(address to, uint256 amount) returns (bool)",
+        "function decimals() view returns (uint8)",
+      ], signer);
+      const decimals = await tokenContract.decimals();
+      const parsedAmount = ethers.parseUnits(amount, decimals);
+      const stakingAddress = "0x000000000000000000000000000000000000dEaD";
+      const tx = await tokenContract.transfer(stakingAddress, parsedAmount);
+      const receipt = await tx.wait();
+      setTxHash(receipt?.hash ?? tx.hash);
+      setAmount("");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Staking failed";
+      setError(msg.includes("user rejected") ? "Transaction rejected" : msg.length > 120 ? msg.slice(0, 120) + "..." : msg);
+    } finally {
+      setStaking(false);
+    }
+  };
 
   const formatTVL = (val: number) => val >= 1000000 ? `$${(val / 1000000).toFixed(2)}M` : `$${(val / 1000).toFixed(1)}K`;
 
@@ -74,6 +115,16 @@ export default function Staking() {
 
             {selectedPool === idx && (
               <div className="px-5 pb-5 border-t border-gray-200 dark:border-gray-800 pt-4">
+                {txHash && (
+                  <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-3">
+                    <CheckCircle size={16} className="text-green-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-green-700 dark:text-green-400">Staked successfully!</p>
+                      <a href={getTxExplorerUrl(txHash)} target="_blank" rel="noopener noreferrer" className="text-[10px] text-green-600 hover:text-green-500 flex items-center gap-1">View on Explorer <ExternalLink size={10} /></a>
+                    </div>
+                  </div>
+                )}
+                {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-500">{error}</div>}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
                     <p className="text-xs text-gray-500">{t("pool.tvl")}</p>
@@ -85,7 +136,10 @@ export default function Staking() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">{t("common.amount")}</label>
+                  <div className="flex justify-between mb-1.5">
+                    <label className="text-xs font-medium text-gray-500">{t("common.amount")}</label>
+                    {balance && <span className="text-xs text-gray-500">Balance: {parseFloat(balance).toFixed(4)}</span>}
+                  </div>
                   <input
                     type="number"
                     value={amount}
@@ -99,8 +153,8 @@ export default function Staking() {
                     </button>
                   ) : (
                     <div className="flex gap-3">
-                      <button className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white font-semibold hover:from-brand-600 hover:to-brand-700 transition-all">
-                        {t("staking.stake")}
+                      <button onClick={() => handleStake(idx)} disabled={staking || !amount} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white font-semibold hover:from-brand-600 hover:to-brand-700 transition-all flex items-center justify-center gap-2 disabled:opacity-70">
+                        {staking ? <><Loader2 size={16} className="animate-spin" /> Staking...</> : t("staking.stake")}
                       </button>
                       <button className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
                         {t("staking.unstake")}

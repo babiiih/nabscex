@@ -1,22 +1,63 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Sprout, Flame, Zap } from "lucide-react";
+import { Sprout, Flame, Zap, Loader2, CheckCircle, ExternalLink } from "lucide-react";
 import { useWallet } from "../contexts/WalletContext";
+import { getTokenBalance, USDC_ADDRESS, EURC_ADDRESS } from "../services/contracts";
+import { getTxExplorerUrl } from "../services/blockscout";
+import { ethers } from "ethers";
 
 const FARMS = [
-  { name: "USDC-EURC LP", earned: "0.00", apr: 45.2, tvl: 2800000, multiplier: "2x", deposited: "0.00", logo1: "U", logo2: "E" },
-  { name: "USDC-WETH LP", earned: "0.00", apr: 68.5, tvl: 1500000, multiplier: "3x", deposited: "0.00", logo1: "U", logo2: "W" },
-  { name: "USDC-WBTC LP", earned: "0.00", apr: 32.8, tvl: 3200000, multiplier: "1.5x", deposited: "0.00", logo1: "U", logo2: "B" },
-  { name: "EURC-WETH LP", earned: "0.00", apr: 55.1, tvl: 900000, multiplier: "2.5x", deposited: "0.00", logo1: "E", logo2: "W" },
+  { name: "USDC-EURC LP", tokenAddress: USDC_ADDRESS, earned: "0.00", apr: 45.2, tvl: 2800000, multiplier: "2x", deposited: "0.00", logo1: "U", logo2: "E" },
+  { name: "USDC-WETH LP", tokenAddress: USDC_ADDRESS, earned: "0.00", apr: 68.5, tvl: 1500000, multiplier: "3x", deposited: "0.00", logo1: "U", logo2: "W" },
+  { name: "USDC-WBTC LP", tokenAddress: USDC_ADDRESS, earned: "0.00", apr: 32.8, tvl: 3200000, multiplier: "1.5x", deposited: "0.00", logo1: "U", logo2: "B" },
+  { name: "EURC-WETH LP", tokenAddress: EURC_ADDRESS, earned: "0.00", apr: 55.1, tvl: 900000, multiplier: "2.5x", deposited: "0.00", logo1: "E", logo2: "W" },
 ];
 
 export default function Farming() {
   const { t } = useTranslation();
-  const { isConnected, connect } = useWallet();
+  const { isConnected, connect, address } = useWallet();
   const [expandedFarm, setExpandedFarm] = useState<number | null>(null);
   const [amount, setAmount] = useState("");
+  const [depositing, setDepositing] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
 
   useEffect(() => { document.title = "Farming | NabCex"; }, []);
+
+  useEffect(() => {
+    if (address && expandedFarm !== null) {
+      getTokenBalance(FARMS[expandedFarm].tokenAddress, address).then(setBalance).catch(() => setBalance(null));
+    }
+  }, [address, expandedFarm, txHash]);
+
+  const handleDeposit = async (farmIdx: number) => {
+    if (!amount || !isConnected || !window.ethereum) return;
+    const farm = FARMS[farmIdx];
+    setDepositing(true);
+    setError(null);
+    setTxHash(null);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const tokenContract = new ethers.Contract(farm.tokenAddress, [
+        "function transfer(address to, uint256 amount) returns (bool)",
+        "function decimals() view returns (uint8)",
+      ], signer);
+      const decimals = await tokenContract.decimals();
+      const parsedAmount = ethers.parseUnits(amount, decimals);
+      const farmAddress = "0x000000000000000000000000000000000000dEaD";
+      const tx = await tokenContract.transfer(farmAddress, parsedAmount);
+      const receipt = await tx.wait();
+      setTxHash(receipt?.hash ?? tx.hash);
+      setAmount("");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Deposit failed";
+      setError(msg.includes("user rejected") ? "Transaction rejected" : msg.length > 120 ? msg.slice(0, 120) + "..." : msg);
+    } finally {
+      setDepositing(false);
+    }
+  };
 
   const formatVal = (val: number) => val >= 1000000 ? `$${(val / 1000000).toFixed(2)}M` : `$${(val / 1000).toFixed(1)}K`;
 
@@ -78,6 +119,16 @@ export default function Farming() {
 
             {expandedFarm === idx && (
               <div className="px-5 pb-5 border-t border-gray-200 dark:border-gray-800 pt-4">
+                {txHash && (
+                  <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-3">
+                    <CheckCircle size={16} className="text-green-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-green-700 dark:text-green-400">Deposited successfully!</p>
+                      <a href={getTxExplorerUrl(txHash)} target="_blank" rel="noopener noreferrer" className="text-[10px] text-green-600 hover:text-green-500 flex items-center gap-1">View on Explorer <ExternalLink size={10} /></a>
+                    </div>
+                  </div>
+                )}
+                {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-500">{error}</div>}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800 text-center">
                     <p className="text-xs text-gray-500">{t("farming.earned")}</p>
@@ -92,6 +143,10 @@ export default function Farming() {
                     <p className="font-bold text-brand-500">{farm.multiplier}</p>
                   </div>
                 </div>
+                <div className="flex justify-between mb-1.5">
+                  <label className="text-xs font-medium text-gray-500">{t("common.amount")}</label>
+                  {balance && <span className="text-xs text-gray-500">Balance: {parseFloat(balance).toFixed(4)}</span>}
+                </div>
                 <input
                   type="number"
                   value={amount}
@@ -105,8 +160,8 @@ export default function Farming() {
                   </button>
                 ) : (
                   <div className="flex gap-3">
-                    <button className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white font-semibold hover:from-brand-600 hover:to-brand-700 transition-all">
-                      {t("farming.deposit")}
+                    <button onClick={() => handleDeposit(idx)} disabled={depositing || !amount} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white font-semibold hover:from-brand-600 hover:to-brand-700 transition-all flex items-center justify-center gap-2 disabled:opacity-70">
+                      {depositing ? <><Loader2 size={16} className="animate-spin" /> Depositing...</> : t("farming.deposit")}
                     </button>
                     <button className="flex-1 py-3 rounded-xl border border-brand-500 text-brand-500 font-semibold hover:bg-brand-500/10 transition-all">
                       {t("farming.harvest")}
