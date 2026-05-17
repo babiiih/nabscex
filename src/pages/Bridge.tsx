@@ -64,7 +64,7 @@ export default function Bridge() {
   };
 
   return (
-    <div className="max-w-lg mx-auto animate-slide-up">
+    <div className="max-w-xl mx-auto animate-slide-up">
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">{t("bridge.title")}</h1>
         <p className="text-sm text-gray-400 mt-1">{t("bridge.subtitle")}</p>

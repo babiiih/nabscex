@@ -120,7 +120,7 @@ export default function Pool() {
       )}
 
       {activeTab === "add" && (
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-xl mx-auto">
           {txHash && (
             <div className="mb-4 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center gap-3 backdrop-blur-sm animate-scale-in">
               <CheckCircle size={20} className="text-green-500 shrink-0" />
@@ -187,7 +187,7 @@ export default function Pool() {
       )}
 
       {activeTab === "remove" && (
-        <div className="max-w-lg mx-auto glass-card p-6">
+        <div className="max-w-xl mx-auto glass-card p-6">
           <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
             <Minus size={18} className="text-red-500" /> {t("pool.removeLiquidity")}
           </h3>

@@ -105,7 +105,7 @@ export default function Swap() {
   useEffect(() => { document.title = "Swap | NabCex"; }, []);
 
   return (
-    <div className="max-w-lg mx-auto animate-slide-up">
+    <div className="max-w-xl mx-auto animate-slide-up">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">{t("swap.title")}</h1>
