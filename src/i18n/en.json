@@ -45,7 +45,11 @@
     "volume24h": "24h Volume",
     "transactions": "Transactions",
     "testnet": "Testnet",
-    "getTestTokens": "Get Test Tokens"
+    "getTestTokens": "Get Test Tokens",
+    "connect": "Connect",
+    "connectWith": "Connect with",
+    "browserWallet": "Browser wallet",
+    "emailLogin": "Login with email or social"
   },
   "swap": {
     "title": "Swap Tokens",
@@ -151,5 +155,15 @@
     "subtitle": "Get free testnet tokens to start testing",
     "claimTokens": "Claim Tokens",
     "circleLink": "Get USDC/EURC from Circle Faucet"
+  },
+  "connectModal": {
+    "title": "Connect to NabCex",
+    "subtitle": "Choose how you want to connect",
+    "wallet": "Wallet",
+    "walletDesc": "Connect with MetaMask or browser wallet",
+    "email": "Email / Social",
+    "emailDesc": "Login with email, Google, or social accounts",
+    "terms": "By connecting, you agree to NabCex Terms of Service. This is a testnet application for testing purposes only.",
+    "emailNotConfigured": "Email login is not available. Please set the VITE_WEB3AUTH_CLIENT_ID environment variable."
   }
 }

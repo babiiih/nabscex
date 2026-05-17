@@ -45,7 +45,11 @@
     "volume24h": "Volume 24 Jam",
     "transactions": "Transaksi",
     "testnet": "Testnet",
-    "getTestTokens": "Dapatkan Token Uji"
+    "getTestTokens": "Dapatkan Token Uji",
+    "connect": "Hubungkan",
+    "connectWith": "Hubungkan dengan",
+    "browserWallet": "Dompet browser",
+    "emailLogin": "Login dengan email atau sosial"
   },
   "swap": {
     "title": "Tukar Token",
@@ -151,5 +155,15 @@
     "subtitle": "Dapatkan token testnet gratis untuk mulai menguji",
     "claimTokens": "Klaim Token",
     "circleLink": "Dapatkan USDC/EURC dari Circle Faucet"
+  },
+  "connectModal": {
+    "title": "Hubungkan ke NabCex",
+    "subtitle": "Pilih cara untuk terhubung",
+    "wallet": "Dompet",
+    "walletDesc": "Hubungkan dengan MetaMask atau dompet browser",
+    "email": "Email / Sosial",
+    "emailDesc": "Login dengan email, Google, atau akun sosial",
+    "terms": "Dengan menghubungkan, Anda setuju dengan Ketentuan Layanan NabCex. Ini adalah aplikasi testnet untuk tujuan pengujian saja.",
+    "emailNotConfigured": "Login email tidak tersedia. Silakan atur variabel lingkungan VITE_WEB3AUTH_CLIENT_ID."
   }
 }
