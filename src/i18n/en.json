@@ -45,7 +45,11 @@
     "volume24h": "24h Volume",
     "transactions": "Transactions",
     "testnet": "Testnet",
-    "getTestTokens": "Get Test Tokens"
+    "getTestTokens": "Get Test Tokens",
+    "connect": "Connect",
+    "connectWith": "Connect with",
+    "browserWallet": "Browser wallet",
+    "emailLogin": "Login with email or social"
   },
   "swap": {
     "title": "Swap Tokens",

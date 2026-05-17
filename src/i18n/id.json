@@ -45,7 +45,11 @@
     "volume24h": "Volume 24 Jam",
     "transactions": "Transaksi",
     "testnet": "Testnet",
-    "getTestTokens": "Dapatkan Token Uji"
+    "getTestTokens": "Dapatkan Token Uji",
+    "connect": "Hubungkan",
+    "connectWith": "Hubungkan dengan",
+    "browserWallet": "Dompet browser",
+    "emailLogin": "Login dengan email atau sosial"
   },
   "swap": {
     "title": "Tukar Token",
