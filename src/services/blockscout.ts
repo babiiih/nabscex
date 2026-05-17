@@ -60,10 +60,10 @@ export async function getNetworkStats(): Promise<NetworkStats> {
 }
 
 export async function getRecentTransactions(limit = 20): Promise<BlockscoutTx[]> {
-  const res = await fetch(`${V2}/transactions?limit=${limit}`);
+  const res = await fetch(`${V2}/transactions`);
   if (!res.ok) throw new Error("Failed to fetch transactions");
   const data = await res.json();
-  return data.items || [];
+  return (data.items || []).slice(0, limit);
 }
 
 export async function getAddressTransactions(address: string, page = 1, offset = 20): Promise<EtherscanTx[]> {
