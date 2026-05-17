@@ -5,6 +5,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useWallet } from "../../contexts/WalletContext";
 import { shortenAddress } from "../../hooks/useTokenPrice";
 import { ARC_TESTNET, ARC_EXPLORER } from "../../config/chains";
+import ConnectModal from "../common/ConnectModal";
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -14,10 +15,10 @@ interface HeaderProps {
 export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
-  const { address, email, balance, chainId, isConnected, isConnecting, loginMethod, connect, connectWithEmail, disconnect, switchToArc, web3authReady } = useWallet();
+  const { address, email, balance, chainId, isConnected, isConnecting, loginMethod, disconnect, switchToArc } = useWallet();
   const [walletMenuOpen, setWalletMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
-  const [connectMenuOpen, setConnectMenuOpen] = useState(false);
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
 
   const isOnArc = chainId === ARC_TESTNET.id;
 
@@ -96,7 +97,7 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
           {isConnected && address ? (
             <div className="relative">
               <button
-                onClick={() => { setWalletMenuOpen(!walletMenuOpen); setLangMenuOpen(false); setConnectMenuOpen(false); }}
+                onClick={() => { setWalletMenuOpen(!walletMenuOpen); setLangMenuOpen(false); }}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/50 dark:bg-white/[0.05] border border-white/30 dark:border-white/[0.08] hover:bg-white/80 dark:hover:bg-white/[0.08] transition-all duration-200 backdrop-blur-sm"
               >
                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-400 to-cyan-500 shadow-sm shadow-brand-500/30 flex items-center justify-center">
@@ -136,51 +137,19 @@ export default function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
               )}
             </div>
           ) : (
-            <div className="relative">
-              <button
-                onClick={() => { setConnectMenuOpen(!connectMenuOpen); setLangMenuOpen(false); setWalletMenuOpen(false); }}
-                disabled={isConnecting}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-cyan-500 text-white font-semibold text-sm transition-all duration-300 disabled:opacity-50 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30 active:scale-[0.98]"
-              >
-                <Wallet size={16} />
-                <span className="hidden sm:inline">{isConnecting ? t("common.loading") : t("common.connect")}</span>
-                <ChevronDown size={14} />
-              </button>
-              {connectMenuOpen && !isConnecting && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white/90 dark:bg-[#151b2e]/95 backdrop-blur-xl border border-white/20 dark:border-white/[0.08] rounded-2xl shadow-2xl py-2 z-50 animate-scale-in">
-                  <p className="px-5 py-2 text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{t("common.connectWith")}</p>
-                  <button
-                    onClick={() => { connect(); setConnectMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-5 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/[0.05] transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                      <Wallet size={16} className="text-orange-500" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold">MetaMask</p>
-                      <p className="text-[11px] text-gray-400">{t("common.browserWallet")}</p>
-                    </div>
-                  </button>
-                  {web3authReady && (
-                    <button
-                      onClick={() => { connectWithEmail(); setConnectMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-5 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/[0.05] transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center">
-                        <Mail size={16} className="text-brand-500" />
-                      </div>
-                      <div className="text-left">
-                        <p className="font-semibold">Email / Social</p>
-                        <p className="text-[11px] text-gray-400">{t("common.emailLogin")}</p>
-                      </div>
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+            <button
+              onClick={() => setConnectModalOpen(true)}
+              disabled={isConnecting}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-cyan-500 text-white font-semibold text-sm transition-all duration-300 disabled:opacity-50 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30 active:scale-[0.98]"
+            >
+              <Wallet size={16} />
+              <span className="hidden sm:inline">{isConnecting ? t("common.loading") : t("common.connect")}</span>
+            </button>
           )}
         </div>
       </div>
+
+      <ConnectModal isOpen={connectModalOpen} onClose={() => setConnectModalOpen(false)} />
     </header>
   );
 }
