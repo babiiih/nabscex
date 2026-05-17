@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { X, Wallet, Mail, ArrowRight } from "lucide-react";
 import { useWallet } from "../../contexts/WalletContext";
@@ -23,8 +24,8 @@ export default function ConnectModal({ isOpen, onClose }: ConnectModalProps) {
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-md animate-scale-in">
         <div className="glass-card p-0 overflow-hidden relative">
@@ -109,6 +110,7 @@ export default function ConnectModal({ isOpen, onClose }: ConnectModalProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
