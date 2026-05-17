@@ -20,6 +20,10 @@ export default function ConnectModal({ isOpen, onClose }: ConnectModalProps) {
   };
 
   const handleEmailConnect = async () => {
+    if (!web3authReady) {
+      alert(t("connectModal.emailNotConfigured"));
+      return;
+    }
     await connectWithEmail();
     onClose();
   };
@@ -71,29 +75,27 @@ export default function ConnectModal({ isOpen, onClose }: ConnectModalProps) {
               </div>
             </button>
 
-            {web3authReady && (
-              <button
-                onClick={handleEmailConnect}
-                disabled={isConnecting}
-                className="w-full group relative overflow-hidden rounded-2xl border border-white/20 dark:border-white/[0.08] bg-white/40 dark:bg-white/[0.03] hover:bg-white/70 dark:hover:bg-white/[0.06] transition-all duration-300 disabled:opacity-50"
-              >
-                <div className="absolute top-0 left-0 right-0 h-full bg-gradient-to-r from-brand-500/5 to-cyan-500/5 dark:from-brand-500/[0.03] dark:to-cyan-500/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative flex items-center gap-4 p-5">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-cyan-500 flex items-center justify-center shadow-lg shadow-brand-500/20 shrink-0">
-                    <Mail size={24} className="text-white" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">
-                      {t("connectModal.email")}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                      {t("connectModal.emailDesc")}
-                    </p>
-                  </div>
-                  <ArrowRight size={20} className="text-gray-300 dark:text-gray-600 group-hover:text-brand-500 transition-colors shrink-0" />
+            <button
+              onClick={handleEmailConnect}
+              disabled={isConnecting}
+              className="w-full group relative overflow-hidden rounded-2xl border border-white/20 dark:border-white/[0.08] bg-white/40 dark:bg-white/[0.03] hover:bg-white/70 dark:hover:bg-white/[0.06] transition-all duration-300 disabled:opacity-50"
+            >
+              <div className="absolute top-0 left-0 right-0 h-full bg-gradient-to-r from-brand-500/5 to-cyan-500/5 dark:from-brand-500/[0.03] dark:to-cyan-500/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex items-center gap-4 p-5">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-cyan-500 flex items-center justify-center shadow-lg shadow-brand-500/20 shrink-0">
+                  <Mail size={24} className="text-white" />
                 </div>
-              </button>
-            )}
+                <div className="text-left flex-1">
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">
+                    {t("connectModal.email")}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    {t("connectModal.emailDesc")}
+                  </p>
+                </div>
+                <ArrowRight size={20} className="text-gray-300 dark:text-gray-600 group-hover:text-brand-500 transition-colors shrink-0" />
+              </div>
+            </button>
 
             {isConnecting && (
               <div className="flex items-center justify-center gap-2 py-3 text-sm text-gray-400">

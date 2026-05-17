@@ -163,6 +163,7 @@
     "walletDesc": "Hubungkan dengan MetaMask atau dompet browser",
     "email": "Email / Sosial",
     "emailDesc": "Login dengan email, Google, atau akun sosial",
-    "terms": "Dengan menghubungkan, Anda setuju dengan Ketentuan Layanan NabCex. Ini adalah aplikasi testnet untuk tujuan pengujian saja."
+    "terms": "Dengan menghubungkan, Anda setuju dengan Ketentuan Layanan NabCex. Ini adalah aplikasi testnet untuk tujuan pengujian saja.",
+    "emailNotConfigured": "Login email tidak tersedia. Silakan atur variabel lingkungan VITE_WEB3AUTH_CLIENT_ID."
   }
 }
