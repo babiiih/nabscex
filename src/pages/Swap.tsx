@@ -148,13 +148,13 @@ export default function Swap() {
 
       <div className="glass-card overflow-hidden relative">
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-500/0 via-brand-500/50 to-cyan-500/0" />
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           <div className="flex justify-between mb-2">
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("swap.youPay")}</label>
             {fromBalance && <span className="text-xs text-gray-400">Balance: {parseFloat(fromBalance).toFixed(4)}</span>}
           </div>
           <div className="flex items-center gap-3">
-            <input type="number" value={fromAmount} onChange={(e) => setFromAmount(e.target.value)} placeholder="0.0" className="flex-1 text-3xl font-bold bg-transparent text-gray-900 dark:text-white focus:outline-none placeholder-gray-300 dark:placeholder-gray-600" />
+            <input type="number" value={fromAmount} onChange={(e) => setFromAmount(e.target.value)} placeholder="0.0" className="flex-1 min-w-0 text-2xl sm:text-3xl font-bold bg-transparent text-gray-900 dark:text-white focus:outline-none placeholder-gray-300 dark:placeholder-gray-600" />
             <button onClick={() => setSelectorOpen("from")} className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/60 dark:bg-white/[0.06] hover:bg-white dark:hover:bg-white/[0.1] transition-all duration-200 shrink-0 border border-white/40 dark:border-white/[0.08]">
               <img src={fromToken.logo} alt={fromToken.symbol} className="w-6 h-6 rounded-full" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               <span className="font-bold text-gray-900 dark:text-white">{fromToken.symbol}</span>
@@ -175,13 +175,13 @@ export default function Swap() {
           </div>
         </div>
 
-        <div className="p-5 bg-white/40 dark:bg-white/[0.02]">
+        <div className="p-4 sm:p-5 bg-white/40 dark:bg-white/[0.02]">
           <div className="flex justify-between mb-2">
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("swap.youReceive")}</label>
             {toBalance && <span className="text-xs text-gray-400">Balance: {parseFloat(toBalance).toFixed(4)}</span>}
           </div>
           <div className="flex items-center gap-3">
-            <input type="text" value={toAmount} readOnly placeholder="0.0" className="flex-1 text-3xl font-bold bg-transparent text-gray-900 dark:text-white focus:outline-none placeholder-gray-300 dark:placeholder-gray-600" />
+            <input type="text" value={toAmount} readOnly placeholder="0.0" className="flex-1 min-w-0 text-2xl sm:text-3xl font-bold bg-transparent text-gray-900 dark:text-white focus:outline-none placeholder-gray-300 dark:placeholder-gray-600" />
             <button onClick={() => setSelectorOpen("to")} className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/60 dark:bg-white/[0.06] hover:bg-white dark:hover:bg-white/[0.1] transition-all duration-200 shrink-0 border border-white/40 dark:border-white/[0.08]">
               <img src={toToken.logo} alt={toToken.symbol} className="w-6 h-6 rounded-full" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               <span className="font-bold text-gray-900 dark:text-white">{toToken.symbol}</span>
@@ -223,21 +223,21 @@ export default function Swap() {
           </div>
         )}
 
-        <div className="p-5">
+        <div className="p-4 sm:p-5">
           {!isConnected ? (
-            <button onClick={connect} className="w-full py-4 btn-primary text-lg">
+            <button onClick={connect} className="w-full py-3.5 sm:py-4 btn-primary text-base sm:text-lg">
               {t("common.connectWallet")}
             </button>
           ) : !fromAmount ? (
-            <button disabled className="w-full py-4 rounded-2xl bg-gray-100/80 dark:bg-white/[0.04] text-gray-400 font-semibold text-lg cursor-not-allowed">
+            <button disabled className="w-full py-3.5 sm:py-4 rounded-2xl bg-gray-100/80 dark:bg-white/[0.04] text-gray-400 font-semibold text-base sm:text-lg cursor-not-allowed">
               {t("common.enterAmount")}
             </button>
           ) : !isDirectSwapPair ? (
-            <button disabled className="w-full py-4 rounded-2xl bg-gray-100/80 dark:bg-white/[0.04] text-gray-400 font-semibold text-lg cursor-not-allowed">
+            <button disabled className="w-full py-3.5 sm:py-4 rounded-2xl bg-gray-100/80 dark:bg-white/[0.04] text-gray-400 font-semibold text-sm sm:text-lg cursor-not-allowed">
               Unsupported pair — select USDC ↔ EURC
             </button>
           ) : (
-            <button onClick={handleSwap} disabled={swapping} className="w-full py-4 btn-primary text-lg flex items-center justify-center gap-2 disabled:opacity-70">
+            <button onClick={handleSwap} disabled={swapping} className="w-full py-3.5 sm:py-4 btn-primary text-base sm:text-lg flex items-center justify-center gap-2 disabled:opacity-70">
               {swapping ? <><Loader2 size={20} className="animate-spin" /> Swapping...</> : <><Zap size={20} /> {t("swap.swapButton")}</>}
             </button>
           )}

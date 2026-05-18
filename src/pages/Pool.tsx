@@ -80,9 +80,9 @@ export default function Pool() {
         </div>
       </div>
 
-      <div className="flex gap-1 p-1 bg-gray-100/80 dark:bg-white/[0.04] backdrop-blur-sm rounded-xl mb-6 w-fit">
+      <div className="flex gap-1 p-1 bg-gray-100/80 dark:bg-white/[0.04] backdrop-blur-sm rounded-xl mb-6 w-full sm:w-fit overflow-x-auto">
         {(["pools", "add", "remove"] as const).map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}>
+          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap flex-1 sm:flex-none ${activeTab === tab ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}>
             {tab === "pools" ? t("pool.title") : tab === "add" ? t("pool.addLiquidity") : t("pool.removeLiquidity")}
           </button>
         ))}
@@ -90,7 +90,7 @@ export default function Pool() {
 
       {activeTab === "pools" && (
         <div className="glass-card overflow-hidden">
-          <div className="grid grid-cols-5 gap-4 px-6 py-3 border-b border-white/10 dark:border-white/[0.04] text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-6 py-3 border-b border-white/10 dark:border-white/[0.04] text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
             <span>Pool</span>
             <span className="text-right">{t("pool.tvl")}</span>
             <span className="text-right">{t("pool.apr")}</span>
@@ -98,13 +98,13 @@ export default function Pool() {
             <span className="text-right">Action</span>
           </div>
           {POOL_DATA.map((pool, idx) => (
-            <div key={idx} className="grid grid-cols-5 gap-4 px-6 py-4 border-b border-gray-100/50 dark:border-white/[0.04] last:border-0 hover:bg-white/40 dark:hover:bg-white/[0.03] transition-all duration-200">
-              <div className="flex items-center gap-2">
+            <div key={idx} className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-4 px-4 sm:px-6 py-4 border-b border-gray-100/50 dark:border-white/[0.04] last:border-0 hover:bg-white/40 dark:hover:bg-white/[0.03] transition-all duration-200">
+              <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                 <div className="flex -space-x-2">
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500/20 to-cyan-500/10 flex items-center justify-center text-[10px] font-bold text-brand-500 border-2 border-white/80 dark:border-[#0a0e1a]">{pool.token0[0]}</div>
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/10 flex items-center justify-center text-[10px] font-bold text-purple-500 border-2 border-white/80 dark:border-[#0a0e1a]">{pool.token1[0]}</div>
                 </div>
-                <span className="font-semibold text-gray-900 dark:text-white text-sm">{pool.token0}/{pool.token1}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-xs sm:text-sm truncate">{pool.token0}/{pool.token1}</span>
               </div>
               <span className="text-right font-semibold text-gray-900 dark:text-white text-sm self-center font-mono">{formatTVL(pool.tvl)}</span>
               <span className="text-right text-green-500 font-bold text-sm self-center">{pool.apr}%</span>

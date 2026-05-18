@@ -85,12 +85,12 @@ export default function Bridge() {
 
       <div className="glass-card overflow-hidden relative">
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-500/0 via-brand-500/50 to-cyan-500/0" />
-        <div className="p-5 flex items-center gap-3">
+        <div className="p-4 sm:p-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="flex-1">
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">{t("bridge.sourceChain")}</label>
             <div className="relative">
               <button onClick={() => { setShowSourceChains(!showSourceChains); setShowDestChains(false); }} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/50 dark:bg-white/[0.04] border border-white/40 dark:border-white/[0.08] hover:border-brand-500/30 transition-all duration-200">
-                <span className="font-semibold text-gray-900 dark:text-white text-sm">{sourceChain.name}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm truncate">{sourceChain.name}</span>
                 <ChevronDown size={14} className="text-gray-400" />
               </button>
               {showSourceChains && (
@@ -102,14 +102,14 @@ export default function Bridge() {
               )}
             </div>
           </div>
-          <button onClick={switchChains} className="mt-5 p-2.5 rounded-xl bg-white/50 dark:bg-white/[0.04] border border-white/40 dark:border-white/[0.08] hover:bg-brand-500/10 hover:text-brand-500 hover:border-brand-500/30 transition-all duration-200 text-gray-400 hover:scale-105 active:scale-95">
+          <button onClick={switchChains} className="self-center sm:mt-5 p-2.5 rounded-xl bg-white/50 dark:bg-white/[0.04] border border-white/40 dark:border-white/[0.08] hover:bg-brand-500/10 hover:text-brand-500 hover:border-brand-500/30 transition-all duration-200 text-gray-400 hover:scale-105 active:scale-95">
             <ArrowRight size={16} />
           </button>
           <div className="flex-1">
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">{t("bridge.destChain")}</label>
             <div className="relative">
               <button onClick={() => { setShowDestChains(!showDestChains); setShowSourceChains(false); }} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/50 dark:bg-white/[0.04] border border-white/40 dark:border-white/[0.08] hover:border-brand-500/30 transition-all duration-200">
-                <span className="font-semibold text-gray-900 dark:text-white text-sm">{destChain.name}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm truncate">{destChain.name}</span>
                 <ChevronDown size={14} className="text-gray-400" />
               </button>
               {showDestChains && (
@@ -123,7 +123,7 @@ export default function Bridge() {
           </div>
         </div>
 
-        <div className="px-5 pb-5">
+        <div className="px-4 sm:px-5 pb-4 sm:pb-5">
           <div className="flex justify-between mb-1.5">
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("common.amount")}</label>
             {balance && <span className="text-xs text-gray-400">Balance: {parseFloat(balance).toFixed(4)}</span>}
@@ -131,14 +131,16 @@ export default function Bridge() {
           <div className="flex items-center gap-3">
             <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.0" className="flex-1 text-2xl font-bold bg-transparent text-gray-900 dark:text-white focus:outline-none placeholder-gray-300 dark:placeholder-gray-600" />
             <div className="relative">
-              <button onClick={() => setShowTokens(!showTokens)} className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/60 dark:bg-white/[0.06] hover:bg-white dark:hover:bg-white/[0.1] transition-all duration-200 border border-white/40 dark:border-white/[0.08]">
+              <button onClick={() => setShowTokens(!showTokens)} className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/60 dark:bg-white/[0.06] hover:bg-white dark:hover:bg-white/[0.1] transition-all duration-200 border border-white/40 dark:border-white/[0.08] shrink-0">
                 <span className="font-bold text-gray-900 dark:text-white">{token.symbol}</span>
                 <ChevronDown size={14} className="text-gray-400" />
               </button>
               {showTokens && (
-                <div className="absolute top-full right-0 mt-1 w-44 bg-white/90 dark:bg-[#151b2e]/95 backdrop-blur-xl border border-white/20 dark:border-white/[0.08] rounded-xl shadow-2xl z-20 py-1 animate-scale-in">
+                <div className="absolute top-full right-0 mt-1 w-52 bg-white/90 dark:bg-[#151b2e]/95 backdrop-blur-xl border border-white/20 dark:border-white/[0.08] rounded-xl shadow-2xl z-20 py-1 animate-scale-in">
                   {BRIDGE_TOKENS.map((bt) => (
-                    <button key={bt.symbol} onClick={() => { setToken(bt); setShowTokens(false); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100/80 dark:hover:bg-white/[0.05] text-gray-700 dark:text-gray-300 transition-colors">{bt.symbol} - {bt.name}</button>
+                    <button key={bt.symbol} onClick={() => { setToken(bt); setShowTokens(false); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100/80 dark:hover:bg-white/[0.05] text-gray-700 dark:text-gray-300 transition-colors">
+                      <span className="font-semibold">{bt.symbol}</span> <span className="text-gray-400">- {bt.name}</span>
+                    </button>
                   ))}
                 </div>
               )}
