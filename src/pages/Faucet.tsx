@@ -21,21 +21,21 @@ export default function Faucet() {
   useEffect(() => { document.title = "Faucet | NabCex"; }, []);
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("faucet.title")}</h1>
-        <p className="text-sm text-gray-500 mt-1">{t("faucet.subtitle")}</p>
+    <div className="max-w-3xl mx-auto animate-slide-up">
+      <div className="mb-8">
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">{t("faucet.title")}</h1>
+        <p className="text-sm text-gray-400 mt-1">{t("faucet.subtitle")}</p>
       </div>
 
-      {/* Main CTA */}
-      <div className="bg-gradient-to-br from-brand-500/10 to-brand-600/5 border border-brand-500/20 rounded-2xl p-6 mb-6">
+      <div className="glass-card overflow-hidden relative p-6 mb-6">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-500/0 via-brand-500/50 to-cyan-500/0" />
         <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-brand-500/20 flex items-center justify-center shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500/20 to-cyan-500/10 flex items-center justify-center shrink-0">
             <Droplet size={28} className="text-brand-500" />
           </div>
           <div className="flex-1">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Circle Testnet Faucet</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               Get free testnet USDC and EURC tokens on Arc Testnet to start testing DeFi features on NabCex. 
               Limit: one request per token per network every 2 hours.
             </p>
@@ -43,7 +43,7 @@ export default function Faucet() {
               href={FAUCET_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white font-semibold hover:from-brand-600 hover:to-brand-700 transition-all shadow-lg shadow-brand-500/25"
+              className="inline-flex items-center gap-2 px-6 py-3 btn-primary shadow-lg shadow-brand-500/25"
             >
               <Gift size={18} />
               {t("faucet.circleLink")}
@@ -53,38 +53,36 @@ export default function Faucet() {
         </div>
       </div>
 
-      {/* Available Tokens */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         {FAUCET_TOKENS.map((token, idx) => (
-          <div key={idx} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+          <div key={idx} className="glass-card-hover p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className={`w-10 h-10 rounded-xl bg-${token.color}-500/10 flex items-center justify-center text-${token.color}-500 font-bold`}>
                 {token.symbol[0]}
               </div>
               <div>
                 <p className="font-semibold text-gray-900 dark:text-white">{token.name}</p>
-                <p className="text-xs text-gray-500">{token.amount} per claim</p>
+                <p className="text-xs text-gray-400">{token.amount} per claim</p>
               </div>
             </div>
-            <p className="text-sm text-gray-500">{token.description}</p>
+            <p className="text-sm text-gray-400">{token.description}</p>
           </div>
         ))}
       </div>
 
-      {/* How it works */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+      <div className="glass-card p-6">
+        <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Info size={18} className="text-brand-500" /> How to get testnet tokens
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {STEPS.map((step, idx) => (
             <div key={idx} className="relative">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-bold">{step.step}</div>
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-cyan-500 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-brand-500/20">{step.step}</div>
                 {idx < STEPS.length - 1 && <ArrowRight size={14} className="text-gray-300 dark:text-gray-600 hidden lg:block" />}
               </div>
-              <p className="font-medium text-gray-900 dark:text-white text-sm">{step.title}</p>
-              <p className="text-xs text-gray-500 mt-1">{step.desc}</p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">{step.title}</p>
+              <p className="text-xs text-gray-400 mt-1">{step.desc}</p>
             </div>
           ))}
         </div>
